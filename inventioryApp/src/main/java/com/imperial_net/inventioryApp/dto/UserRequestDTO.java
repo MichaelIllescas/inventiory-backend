@@ -3,19 +3,19 @@ package com.imperial_net.inventioryApp.dto;
 import com.imperial_net.inventioryApp.models.Role;
 import lombok.*;
 
-@Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 @Builder
-public class UserDTO {
-    private Long id;
+public class UserRequestDTO {
+
     private String firstName;
     private String lastName;
     private String documentNumber;
     private String phone;
     private String address;
     private String email;
-    private String state;
+    private String password;
     private Role role;
-    private String registrationDate;
 }

@@ -5,6 +5,7 @@ package com.imperial_net.inventioryApp.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,6 +13,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -64,6 +66,16 @@ public class User implements UserDetails
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @NotNull(message = "La fecha de registro no puede estar vacía.")
+    @Column(nullable = false, updatable = false)
+    private LocalDate registrationDate;
+
+    @PrePersist
+    protected void onCreate() {
+        this.registrationDate = LocalDate.now(); // Asigna la fecha actual al crear
+    }
+
 
 
     @Override

@@ -22,7 +22,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(InvalidCredentialsException.class)
+    @ResponseBody
     public ResponseEntity<Map<String, String>> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        return new ResponseEntity<>(errorResponse, headers, HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(UserRegisterException.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleUserRegisterException(UserRegisterException ex) {
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("error", ex.getMessage());
 
