@@ -1,47 +1,47 @@
-package com.imperial_net.inventioryApp.controllers;
+    package com.imperial_net.inventioryApp.controllers;
 
-import com.imperial_net.inventioryApp.dto.ProviderRequestDTO;
-import com.imperial_net.inventioryApp.dto.ProviderResponseDTO;
-import com.imperial_net.inventioryApp.dto.UserDTO;
-import com.imperial_net.inventioryApp.models.Provider;
-import com.imperial_net.inventioryApp.services.ProviderService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+    import com.imperial_net.inventioryApp.dto.ProviderRequestDTO;
+    import com.imperial_net.inventioryApp.dto.ProviderResponseDTO;
+    import com.imperial_net.inventioryApp.dto.UserDTO;
+    import com.imperial_net.inventioryApp.models.Provider;
+    import com.imperial_net.inventioryApp.services.ProviderService;
+    import jakarta.servlet.http.HttpServletRequest;
+    import jakarta.validation.Valid;
+    import lombok.RequiredArgsConstructor;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+    import java.util.Optional;
 
-@RestController
-@RequestMapping("/providers")
-@RequiredArgsConstructor
-public class ProviderController {
-    private final ProviderService providerService;
+    @RestController
+    @RequestMapping("/providers")
+    @RequiredArgsConstructor
+    public class ProviderController {
+        private final ProviderService providerService;
 
-    @PostMapping("/providerRegister")
-    public ResponseEntity<ProviderResponseDTO> registerProvider(
-            @Valid @RequestBody ProviderRequestDTO providerDto, HttpServletRequest request) {
+        @PostMapping("/providerRegister")
+        public ResponseEntity<ProviderResponseDTO> registerProvider(
+                @Valid @RequestBody ProviderRequestDTO providerDto, HttpServletRequest request) {
 
-        ProviderResponseDTO savedProvider = providerService.registerProvider(providerDto, request);
-        return ResponseEntity.ok(savedProvider);
+            ProviderResponseDTO savedProvider = providerService.registerProvider(providerDto, request);
+            return ResponseEntity.ok(savedProvider);
+        }
+
+
+        @GetMapping("/getProviders")
+        public ResponseEntity<?> getUsers(HttpServletRequest request) {
+            return ResponseEntity.ok(providerService.getAllProvidersForUser(request));
+        }
+
+        @PutMapping("/{id}")
+        public ResponseEntity<?>updateProvider(
+                @PathVariable Long id, @RequestBody ProviderRequestDTO providerRequest
+        ){
+            providerService.updateProvider(id,providerRequest);
+            return ResponseEntity.status(HttpStatus.OK).body("usuario actualizado correctamente");
+        }
+
+
+
     }
-
-
-    @GetMapping("/getProviders")
-    public ResponseEntity<?> getUsers(HttpServletRequest request) {
-        return ResponseEntity.ok(providerService.getAllProvidersForUser(request));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?>updateProvider(
-            @PathVariable Long id, @RequestBody ProviderRequestDTO providerRequest
-    ){
-        providerService.updateProvider(id,providerRequest);
-        return ResponseEntity.status(HttpStatus.OK).body("usuario actualizado correctamente");
-    }
-
-
-
-}

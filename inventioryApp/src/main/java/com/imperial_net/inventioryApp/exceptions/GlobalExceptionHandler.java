@@ -1,5 +1,8 @@
 package com.imperial_net.inventioryApp.exceptions;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +25,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
+
     @ExceptionHandler(InvalidCredentialsException.class)
     @ResponseBody
     public ResponseEntity<Map<String, String>> handleInvalidCredentialsException(InvalidCredentialsException ex) {
@@ -33,6 +37,7 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, headers, HttpStatus.UNAUTHORIZED);
     }
+
     @ExceptionHandler(UserRegisterException.class)
     @ResponseBody
     public ResponseEntity<Map<String, String>> handleUserRegisterException(UserRegisterException ex) {
@@ -44,6 +49,7 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, headers, HttpStatus.UNAUTHORIZED);
     }
+
     @ExceptionHandler(ProviderException.class)
     @ResponseBody
     public ResponseEntity<Map<String, String>> handleProviderException(ProviderException ex) {
@@ -72,4 +78,65 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, headers, HttpStatus.BAD_REQUEST);
     }
 
+    // 🔹 Nueva: Manejo de validaciones en parámetros de consulta (Jakarta Validation)
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        return new ResponseEntity<>(errorResponse, headers, HttpStatus.BAD_REQUEST);
+    }
+
+    // 🔹 Nueva: Manejo de recursos no encontrados (JPA/Hibernate)
+    @ExceptionHandler(EntityNotFoundException.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleEntityNotFoundException(EntityNotFoundException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "El recurso solicitado no fue encontrado.");
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 🔹 Nueva: Manejo de violaciones de integridad (errores de base de datos)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Violación de integridad de datos. Verifique restricciones únicas o valores nulos.");
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // 🔹 Nueva: Manejo de errores de lógica de negocio (ej. stock insuficiente)
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // 🔹 Nueva: Manejo genérico de cualquier otra excepción
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error",  ex.getMessage());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

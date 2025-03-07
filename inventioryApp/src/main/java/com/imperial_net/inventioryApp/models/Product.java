@@ -1,12 +1,11 @@
 package com.imperial_net.inventioryApp.models;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "products")
@@ -57,19 +56,48 @@ public class Product {
     private Provider provider; // Relación con el proveedor
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User createdBy; // Usuario que registró el producto
+    @JoinColumn(name = "brand_id", nullable = true) // Relación con Marca
+    private Brand brand;
 
-    private LocalDateTime registrarionDate;
-    private LocalDateTime updatedDate;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User registratedBy; // Usuario que registró el producto
+
+    private LocalDate registrationDate;
+    private LocalDate updatedDate;
+
+    @PastOrPresent(message = "La fecha de última actualización de precios no puede estar en el futuro.")
+    private LocalDate lastPriceUpdate; // Nueva fecha para registrar cambios en precios
+
+    // 🔹 Guardamos los precios anteriores en la base de datos para poder compararlos
+    @Column(precision = 10, scale = 2)
+    private BigDecimal previousPurchasePrice;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal previousSalePrice;
 
     @PrePersist
     protected void onCreate() {
-        this.registrarionDate = LocalDateTime.now();
+        this.registrationDate = LocalDate.now();
+        this.previousPurchasePrice = this.purchasePrice;
+        this.previousSalePrice = this.salePrice;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedDate = LocalDateTime.now();
+        this.updatedDate = LocalDate.now();
+
+        // Verificar si hubo cambios en los precios antes de actualizar la fecha
+        boolean purchasePriceChanged = !this.purchasePrice.equals(this.previousPurchasePrice);
+        boolean salePriceChanged = !this.salePrice.equals(this.previousSalePrice);
+
+        if (purchasePriceChanged || salePriceChanged) {
+            this.lastPriceUpdate = LocalDate.now();
+        }
+
+        // Actualizar los valores previos
+        this.previousPurchasePrice = this.purchasePrice;
+        this.previousSalePrice = this.salePrice;
     }
 }
