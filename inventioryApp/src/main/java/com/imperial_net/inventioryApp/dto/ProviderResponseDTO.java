@@ -20,4 +20,5 @@ public class ProviderResponseDTO {
     private String createdBy;
     private String registrationDate;
     private String updateDate;
+    private String state;
 }

@@ -1,12 +1,16 @@
 package com.imperial_net.inventioryApp.services;
 
+import com.imperial_net.inventioryApp.dto.ProductResponseDTO;
 import com.imperial_net.inventioryApp.dto.ProviderRequestDTO;
 import com.imperial_net.inventioryApp.dto.ProviderResponseDTO;
+import com.imperial_net.inventioryApp.exceptions.ProductException;
 import com.imperial_net.inventioryApp.exceptions.ProviderException;
+import com.imperial_net.inventioryApp.models.Product;
 import com.imperial_net.inventioryApp.models.Provider;
 import com.imperial_net.inventioryApp.models.User;
 import com.imperial_net.inventioryApp.repositories.ProviderRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -87,6 +91,7 @@ public class ProviderService {
         dto.setCreatedBy(provider.getCreatedBy() != null ? provider.getCreatedBy().getFirstName() + " " + provider.getCreatedBy().getLastName() : null);
         dto.setRegistrationDate(provider.getRegistrationDate().format(formatter).toString());
         dto.setUpdateDate((provider.getUpdateDate() != null) ?provider.getUpdateDate().format(formatter).toString():null);
+        dto.setState((provider.getState())?"ACTIVO":"INACTIVO");
         return dto;
     }
 
@@ -116,5 +121,30 @@ public class ProviderService {
         provider.setWebsite(dto.getWebsite());
         provider.setContactPerson(dto.getContactPerson());
         provider.setNotes(dto.getNotes());
+    }
+
+    public void updateState(Long id) {
+        Provider provider = providerRepository.findById(id).get();
+        if ((provider.getState())) {
+            provider.setState(false);
+        } else {
+            provider.setState(true);
+        }
+        providerRepository.save(provider);
+
+    }
+
+    public List<ProviderResponseDTO> getAllProvidersActiveForUser(HttpServletRequest request) {
+        Long userId = cookieService.getUserFromCookie(request)
+                .map(User::getId)
+                .orElseThrow(() -> new ProductException("Usuario no autenticado"));
+
+        return providerRepository.findAllByCreatedBy_IdAndStateTrue(userId).stream()
+                .map(this::convertToDto)
+                .toList();
+    }
+
+    public Provider getProviderById(Long providerId) {
+        return  providerRepository.findById(providerId).get();
     }
 }

@@ -51,8 +51,6 @@ public class Provider {
     @Size(max = 500, message = "Las notas no pueden superar los 500 caracteres.")
     private String notes;
 
-    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL)
-    private List<Product> products;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -61,9 +59,12 @@ public class Provider {
     private LocalDate registrationDate;
     private LocalDate updateDate;
 
+    private Boolean state;
+
     @PrePersist
     protected void onCreate() {
         this.registrationDate = LocalDate.now();
+        this.state=true;
     }
 
     @PreUpdate

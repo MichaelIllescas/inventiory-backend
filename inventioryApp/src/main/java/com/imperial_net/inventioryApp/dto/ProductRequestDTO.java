@@ -20,25 +20,17 @@ public class ProductRequestDTO {
     @Size(max = 255, message = "La descripción no puede superar los 255 caracteres.")
     private String description;
 
-    @NotNull(message = "El precio de compra es obligatorio.")
-    @DecimalMin(value = "0.01", message = "El precio de compra debe ser mayor a 0.")
-    private BigDecimal purchasePrice;
-
     @NotNull(message = "El precio de venta es obligatorio.")
     @DecimalMin(value = "0.01", message = "El precio de venta debe ser mayor a 0.")
     private BigDecimal salePrice;
 
-    @NotNull(message = "El stock disponible es obligatorio.")
-    @Min(value = 0, message = "El stock no puede ser negativo.")
-    private Integer stock;
-
     @Min(value = 0, message = "El stock mínimo no puede ser negativo.")
-    private Integer minStock;
+    private BigDecimal minStock;
 
+    @NotBlank(message = "La categoría es obligatoria.")
     @Size(max = 100, message = "La categoría no puede superar los 100 caracteres.")
     private String category;
 
-    @NotNull(message = "El proveedor es obligatorio.")
-    private Long providerId; // Se recibe solo el ID del proveedor
-    private String brandName; // Se recibe el nombre de la marca, si no existe se creará automáticamente
+    @Size(max = 100, message = "El nombre de la marca no puede superar los 100 caracteres.")
+    private String brandName; // 🔹 Si no existe, se creará automáticamente
 }

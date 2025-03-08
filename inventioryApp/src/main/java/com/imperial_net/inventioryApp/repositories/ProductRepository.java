@@ -6,6 +6,8 @@ import com.imperial_net.inventioryApp.models.Provider;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,7 +19,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     boolean existsByNameAndCodeAndBrandAndDescription(String name, String code, Brand brand, String description);
     List<Product> findAllByRegistratedBy_Id(Long userId);
 
+    List<Product> findAllByRegistratedBy_IdAndStateTrue(Long userId);
+
     boolean existsByCode (String code);
 
     Optional<Product> findByCode(String code);
+
+
+    @Query("SELECT p FROM Product p " +
+            "WHERE p.stock <= p.minStock " +
+            "AND p.registratedBy.id = :userId " +
+            "AND p.state = true " +
+            "ORDER BY p.stock ASC")
+    List<Product> findLowStockProductsByUser(@Param("userId") Long userId);
 }

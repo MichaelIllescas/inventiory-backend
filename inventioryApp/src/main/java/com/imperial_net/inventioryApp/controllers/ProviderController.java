@@ -34,6 +34,11 @@
             return ResponseEntity.ok(providerService.getAllProvidersForUser(request));
         }
 
+            @GetMapping("/getProvidersActive")
+        public ResponseEntity<?> getProvidersActive(HttpServletRequest request) {
+            return ResponseEntity.ok(providerService.getAllProvidersActiveForUser(request));
+        }
+
         @PutMapping("/{id}")
         public ResponseEntity<?>updateProvider(
                 @PathVariable Long id, @RequestBody ProviderRequestDTO providerRequest
@@ -41,7 +46,16 @@
             providerService.updateProvider(id,providerRequest);
             return ResponseEntity.status(HttpStatus.OK).body("usuario actualizado correctamente");
         }
+        @PatchMapping("/toggleStatus/{id}")
+        public ResponseEntity<?>updateState(
+                @PathVariable Long id) {
+            try {
+                providerService.updateState(id);
+                return ResponseEntity.ok("Estado actualziado correctamente");
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al modificar los precios");
+            }
 
-
+        }
 
     }
