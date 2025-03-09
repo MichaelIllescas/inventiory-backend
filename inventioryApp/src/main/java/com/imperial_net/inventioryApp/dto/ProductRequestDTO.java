@@ -33,4 +33,6 @@ public class ProductRequestDTO {
 
     @Size(max = 100, message = "El nombre de la marca no puede superar los 100 caracteres.")
     private String brandName; // 🔹 Si no existe, se creará automáticamente
+
+
 }

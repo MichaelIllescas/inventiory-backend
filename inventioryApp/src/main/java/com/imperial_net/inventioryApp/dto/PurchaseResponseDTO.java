@@ -15,11 +15,14 @@ public class PurchaseResponseDTO {
 
     private Long id;
     private String productName;
+    private String productCode;
     private BigDecimal purchasePrice;
     private BigDecimal quantity;
-    private LocalDate purchaseDate;
+    private String purchaseDate;
     private String providerName;
     private String notes;
+    private String state;
+
 
 
 }
