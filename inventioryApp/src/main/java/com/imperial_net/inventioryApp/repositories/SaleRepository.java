@@ -25,4 +25,6 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
      * Obtiene todas las ventas según su estado (Confirmada, Cancelada, Pendiente).
      */
     List<Sale> findByStatus(SaleStatus status);
+    // Filtra las ventas por el ID del usuario que las creó
+    List<Sale> findAllByUser_Id(Long userId);
 }

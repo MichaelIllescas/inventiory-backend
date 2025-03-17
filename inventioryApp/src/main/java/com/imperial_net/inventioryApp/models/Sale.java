@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -21,7 +21,7 @@ public class Sale {
      * Se asigna automáticamente antes de persistir en la base de datos.
      */
     @NotNull
-    private LocalDateTime saleDate;
+    private LocalDate saleDate;
 
     /**
      * Usuario que registró la venta.
@@ -99,6 +99,6 @@ public class Sale {
      */
     @PrePersist
     protected void onCreate() {
-        this.saleDate = LocalDateTime.now();
+        this.saleDate = LocalDate.now();
     }
 }

@@ -43,7 +43,7 @@ public class ClientService {
                 .map(User::getId)
                 .orElseThrow(() -> new ClientException("Usuario no autenticado"));
 
-        return clientRepository.findAll().stream()
+        return clientRepository.findAllByCreatedBy_Id(userId).stream()
                 .map(this::convertToDto)
                 .toList();
     }
@@ -65,7 +65,6 @@ public class ClientService {
                 .filter(existingClient -> !existingClient.getId().equals(id))
                 .ifPresent(c -> { throw new ClientException("El número de documento '" + clientRequest.getDocumentNumber() + "' ya está registrado."); });
     }
-
 
 
 

@@ -47,14 +47,16 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponseDTO save(@Valid ProductRequestDTO productRequestDTO, HttpServletRequest request) {
+    public ProductResponseDTO save(ProductRequestDTO productRequestDTO, HttpServletRequest request) {
 
         // Obtener usuario autenticado desde la cookie
         User user = cookieService.getUserFromCookie(request)
                 .orElseThrow(() -> new ProductException("Usuario no autenticado. No se puede registrar el producto."));
 
+        System.out.println(productRepository.existsByCodeAndRegistratedBy_Id(productRequestDTO.getCode(), user.getId()));
         // Verificar si ya existe un producto con el mismo código
-        if (productRepository.existsByCode(productRequestDTO.getCode())) {
+        if (productRepository.existsByCodeAndRegistratedBy_Id(productRequestDTO.getCode(), user.getId()) ){
+
             throw new ProductException("Ya existe un producto con el código '" + productRequestDTO.getCode() + "'.");
         }
 

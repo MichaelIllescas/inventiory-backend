@@ -11,11 +11,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DisabledUserException.class)
@@ -61,6 +62,7 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, headers, HttpStatus.UNAUTHORIZED);
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
@@ -150,4 +152,18 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, headers, HttpStatus.UNAUTHORIZED);
     }
+    @ExceptionHandler(ProductException.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleProductException(ProductException ex) {
+        System.out.println("⚠️ Excepción Capturada: " + ex.getMessage()); // LOG PARA VERIFICAR SI ENTRA
+
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON); // 🔹 FORZAR JSON
+
+        return new ResponseEntity<>(errorResponse, headers, HttpStatus.BAD_REQUEST);
+    }
+
 }

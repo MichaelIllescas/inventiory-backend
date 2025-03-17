@@ -23,6 +23,7 @@ public class SaleService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final ClientRepository clientRepository;
+    private final ClientService clientService;
     private final CookieService cookieService;
     private final PurchaseRepository purchaseRepository;
     /**
@@ -86,8 +87,11 @@ public class SaleService {
     /**
      * Obtiene todas las ventas y las convierte a DTOs.
      */
-    public List<SaleResponseDTO> getAllSales() {
-        return saleRepository.findAll().stream()
+    public List<SaleResponseDTO> getAllSales( HttpServletRequest request) {
+       User user = cookieService.getUserFromCookie(request).orElseThrow( ()-> new RuntimeException("Usuario no autenticado"));
+
+
+        return saleRepository.findByUser(user).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -113,14 +117,21 @@ public class SaleService {
             totalCost = totalCost.add(detail.getCostPrice().multiply(detail.getQuantity()));
         }
 
-        BigDecimal grossProfit = totalSale.subtract(totalCost);
-        BigDecimal discount = sale.getDiscountApplied() != null ? sale.getDiscountApplied() : BigDecimal.ZERO;
-        BigDecimal netProfit = grossProfit.subtract(discount);
+        BigDecimal discountPercentage = sale.getDiscountApplied() != null ? sale.getDiscountApplied() : BigDecimal.ZERO;
 
-        sale.setTotalSale(totalSale);
+        // Convertir el porcentaje en un factor de multiplicación (Ej: 10% → 0.90)
+        BigDecimal discountFactor = BigDecimal.ONE.subtract(discountPercentage.divide(BigDecimal.valueOf(100)));
+
+        // Aplicar el porcentaje de descuento
+        BigDecimal totalSaleWithDiscount = totalSale.multiply(discountFactor).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+        // Calcular la ganancia bruta con el total con descuento
+        BigDecimal grossProfit = totalSaleWithDiscount.subtract(totalCost);
+
+        sale.setTotalSale(totalSaleWithDiscount); // Guardamos el total con el descuento aplicado
         sale.setTotalCost(totalCost);
         sale.setGrossProfit(grossProfit);
-        sale.setNetProfit(netProfit);
+        sale.setNetProfit(grossProfit); // No es necesario restar descuento nuevamente porque ya está aplicado
     }
 
     /**
@@ -139,17 +150,35 @@ public class SaleService {
         dto.setStatus(sale.getStatus().name());
 
         if (sale.getCustomer() != null) {
-            dto.setClientId(sale.getCustomer().getId());
+            dto.setClient(clientService.convertToDto(clientRepository.findById(sale.getCustomer().getId()).get()));
         }
 
         dto.setSaleDetails(sale.getSaleDetails().stream().map(detail -> {
             SaleDetailDTO detailDTO = new SaleDetailDTO();
             detailDTO.setId(detail.getId());
-            detailDTO.setProductId(detail.getProduct().getId());
-            detailDTO.setQuantity(detail.getQuantity());
-            detailDTO.setSalePrice(detail.getSalePrice());
+            detailDTO.setSaleId(sale.getId());
+
+            // Verifica si el producto no es null antes de asignar sus valores
+            if (detail.getProduct() != null) {
+                detailDTO.setProductId(detail.getProduct().getId());
+                detailDTO.setProductCode(detail.getProduct().getCode().toString());
+                detailDTO.setProductName(detail.getProduct().getName());
+                detailDTO.setProductDescription(detail.getProduct().getDescription());
+
+                if (detail.getProduct().getCategory() != null) {
+                    detailDTO.setProductCategory(detail.getProduct().getCategory());
+                }
+
+                if (detail.getProduct().getBrand() != null) {
+                    detailDTO.setProductBrandName(detail.getProduct().getBrand().getName());
+                }
+            }
+
+            detailDTO.setProductQuantity(detail.getQuantity());
+            detailDTO.setProductSalePrice(detail.getSalePrice());
             detailDTO.setSubtotal(detail.getSubtotal());
             detailDTO.setCostPrice(detail.getCostPrice());
+
             return detailDTO;
         }).collect(Collectors.toList()));
 
@@ -196,6 +225,14 @@ public class SaleService {
         }
 
         return costoTotal.divide(cantidadVendida, 2, BigDecimal.ROUND_HALF_UP);
+    }
+
+    public boolean deleteSale(Long id) {
+        if (saleRepository.existsById(id)) { // Verifica si el ID existe antes de eliminar
+            saleRepository.deleteById(id);
+            return true; // Se eliminó correctamente
+        }
+        return false; // No se encontró el ID, no se eliminó nada
     }
 
 }

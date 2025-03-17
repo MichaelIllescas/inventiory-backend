@@ -10,8 +10,13 @@ public class SaleDetailDTO {
     private Long id;
     private Long saleId;
     private Long productId;
-    private BigDecimal quantity;
-    private BigDecimal salePrice;
+    private String productCode;
+    private String productName;
+    private String productDescription;
+    private String productCategory;
+    private String productBrandName;
+    private BigDecimal productQuantity;
+    private BigDecimal productSalePrice;
 
     /**
      * Monto total pagado por este producto en la venta.

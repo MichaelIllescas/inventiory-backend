@@ -83,10 +83,10 @@ public class SaleDetailService {
         SaleDetail existingDetail = saleDetailRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Detalle de Venta no encontrado"));
 
-        existingDetail.setQuantity(saleDetailDTO.getQuantity());
-        existingDetail.setSalePrice(saleDetailDTO.getSalePrice());
+        existingDetail.setQuantity(saleDetailDTO.getProductQuantity());
+        existingDetail.setSalePrice(saleDetailDTO.getProductSalePrice());
         existingDetail.setCostPrice(saleDetailDTO.getCostPrice());
-        existingDetail.setSubtotal(saleDetailDTO.getSalePrice().multiply(saleDetailDTO.getQuantity()));
+        existingDetail.setSubtotal(saleDetailDTO.getProductSalePrice().multiply(saleDetailDTO.getProductQuantity()));
 
         SaleDetail updatedDetail = saleDetailRepository.save(existingDetail);
         return convertToDTO(updatedDetail);
@@ -109,10 +109,10 @@ public class SaleDetailService {
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada")));
         detail.setProduct(productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado")));
-        detail.setQuantity(dto.getQuantity());
-        detail.setSalePrice(dto.getSalePrice());
+        detail.setQuantity(dto.getProductQuantity());
+        detail.setSalePrice(dto.getProductSalePrice());
         detail.setCostPrice(dto.getCostPrice());
-        detail.setSubtotal(dto.getSalePrice().multiply(dto.getQuantity())); // Calcula subtotal
+        detail.setSubtotal(dto.getProductSalePrice().multiply(dto.getProductQuantity())); // Calcula subtotal
         return detail;
     }
 
@@ -124,10 +124,14 @@ public class SaleDetailService {
         dto.setId(detail.getId());
         dto.setSaleId(detail.getSale().getId());
         dto.setProductId(detail.getProduct().getId());
-        dto.setQuantity(detail.getQuantity());
-        dto.setSalePrice(detail.getSalePrice());
+        dto.setProductQuantity(detail.getQuantity());
+        dto.setProductSalePrice(detail.getSalePrice());
         dto.setSubtotal(detail.getSubtotal());
         dto.setCostPrice(detail.getCostPrice());
+        dto.setProductName(detail.getProduct().getName());
+        dto.setProductCode(detail.getProduct().getCode().toString());
+        dto.setProductCategory(detail.getProduct().getBrand().getName());
+        dto.setProductId(detail.getProduct().getId());
         return dto;
     }
 }

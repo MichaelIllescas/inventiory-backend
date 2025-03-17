@@ -20,7 +20,7 @@ public class SaleDetail {
     @NotNull
     private Sale sale;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @NotNull
     private Product product;
 
