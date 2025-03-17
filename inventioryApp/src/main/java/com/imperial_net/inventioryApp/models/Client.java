@@ -51,9 +51,12 @@ public class Client {
     private LocalDate registrationDate;
     private LocalDate updateDate;
 
+    private Boolean active;
+
     @PrePersist
     protected void onCreate() {
         this.registrationDate = LocalDate.now();
+        this.active =true;
     }
 
     @PreUpdate

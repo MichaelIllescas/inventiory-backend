@@ -1,8 +1,11 @@
 package com.imperial_net.inventioryApp.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -22,4 +25,8 @@ public class ExpenseRequestDTO {
 
     @Size(max = 255, message = "La descripción no puede superar los 255 caracteres.")
     private String description;
+
+    @NotNull(message = "La fecha es obligatoria")
+    @JsonFormat(pattern = "dd/MM/yyyy")  // Asegura la deserialización y serialización correcta de la fecha en formato ISO
+    private LocalDate expenseDate;
 }

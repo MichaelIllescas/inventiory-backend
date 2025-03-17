@@ -24,7 +24,7 @@ public class ClientController {
         return ResponseEntity.ok(savedClient);
     }
 
-    @GetMapping("/getClients")
+        @GetMapping("/getClients")
     public ResponseEntity<?> getClients(HttpServletRequest request) {
         return ResponseEntity.ok(clientService.getAllClientsForUser(request));
     }
@@ -35,4 +35,17 @@ public class ClientController {
         clientService.updateClient(id, clientRequest);
         return ResponseEntity.status(HttpStatus.OK).body("Cliente actualizado correctamente");
     }
+
+    @PatchMapping("/toggle-status/{id}")
+    public ResponseEntity<?>updateState(
+            @PathVariable Long id){
+        try {
+            clientService.toggleClientStatus(id);
+            return ResponseEntity.ok("Estado actualziado correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al modificar el estado del cliente");
+        }
+    }
+
+
 }
