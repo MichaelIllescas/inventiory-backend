@@ -34,7 +34,7 @@ public class PurchaseRequestDTO {
 
     private String notes;
 
-    private String state;
+    private String state = "ACTIVO";
 
 
 

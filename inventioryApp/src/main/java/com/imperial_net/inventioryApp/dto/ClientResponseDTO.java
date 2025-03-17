@@ -17,4 +17,5 @@ public class ClientResponseDTO {
     private String createdBy;
     private String registrationDate;
     private String updateDate;
+    private boolean active;
 }

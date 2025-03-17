@@ -1,5 +1,4 @@
 package com.imperial_net.inventioryApp.models;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -31,13 +30,20 @@ public class Purchase {
     @Min(value = 1, message = "La cantidad comprada debe ser al menos 1.")
     private BigDecimal quantity;
 
+    /**
+     * Stock restante de esta compra.
+     * Se usa para el método FIFO en ventas.
+     */
+    @NotNull
+    private BigDecimal remainingStock;
+
     @NotNull(message = "La fecha de compra es obligatoria.")
     @PastOrPresent(message = "La fecha de compra no puede ser en el futuro.")
     private LocalDate purchaseDate;
 
     @ManyToOne
     @JoinColumn(name = "provider_id", nullable = false)
-    private Provider provider; // Ahora cada compra tiene su propio proveedor
+    private Provider provider;
 
     @ManyToOne
     @JoinColumn(name = "registred_by", nullable = false)
@@ -51,6 +57,7 @@ public class Purchase {
 
     @PrePersist
     protected void onCreate() {
-        this.state=true;
+        this.remainingStock = this.quantity; // Inicializar remainingStock con la cantidad comprada
+        this.state = true;
     }
 }

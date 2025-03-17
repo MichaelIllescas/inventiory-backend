@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public class ClientService {
 
         Client client = convertToEntity(clientDto);
         client.setCreatedBy(user);
+        client.setActive(true);
 
         Client savedClient = clientRepository.save(client);
         return convertToDto(savedClient);
@@ -41,7 +43,7 @@ public class ClientService {
                 .map(User::getId)
                 .orElseThrow(() -> new ClientException("Usuario no autenticado"));
 
-        return clientRepository.findAllByCreatedBy_Id(userId).stream()
+        return clientRepository.findAll().stream()
                 .map(this::convertToDto)
                 .toList();
     }
@@ -64,6 +66,9 @@ public class ClientService {
                 .ifPresent(c -> { throw new ClientException("El número de documento '" + clientRequest.getDocumentNumber() + "' ya está registrado."); });
     }
 
+
+
+
     public ClientResponseDTO convertToDto(Client client) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         ClientResponseDTO dto = new ClientResponseDTO();
@@ -78,6 +83,7 @@ public class ClientService {
         dto.setCreatedBy(client.getCreatedBy() != null ? client.getCreatedBy().getFirstName() + " " + client.getCreatedBy().getLastName() : null);
         dto.setRegistrationDate(client.getRegistrationDate().format(formatter).toString());
         dto.setUpdateDate((client.getUpdateDate() != null) ? client.getUpdateDate().format(formatter).toString() : null);
+        dto.setActive(client.getActive());
         return dto;
     }
 
@@ -90,6 +96,7 @@ public class ClientService {
         client.setEmail(dto.getEmail());
         client.setPhone(dto.getPhone());
         client.setAddress(dto.getAddress());
+        client.setActive(true);
         return client;
     }
 
@@ -101,5 +108,16 @@ public class ClientService {
         client.setEmail(dto.getEmail());
         client.setPhone(dto.getPhone());
         client.setAddress(dto.getAddress());
+    }
+
+    public void toggleClientStatus(Long id){
+        Optional<Client> optionalClient = clientRepository.findById(id);
+        if(optionalClient.isPresent()){
+            Client client = optionalClient.get();
+            client.setActive(!client.getActive());
+            clientRepository.save(client);
+
+        }
+
     }
 }
