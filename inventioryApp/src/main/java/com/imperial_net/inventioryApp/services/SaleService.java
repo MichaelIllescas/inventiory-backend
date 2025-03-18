@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.net.http.HttpClient;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -138,9 +139,10 @@ public class SaleService {
      * Convierte una entidad Sale en un SaleResponseDTO.
      */
     private SaleResponseDTO convertToDTO(Sale sale) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         SaleResponseDTO dto = new SaleResponseDTO();
         dto.setId(sale.getId());
-        dto.setSaleDate(sale.getSaleDate());
+        dto.setSaleDate(sale.getSaleDate().format(formatter));
         dto.setTotalSale(sale.getTotalSale());
         dto.setTotalCost(sale.getTotalCost());
         dto.setGrossProfit(sale.getGrossProfit());
@@ -227,12 +229,62 @@ public class SaleService {
         return costoTotal.divide(cantidadVendida, 2, BigDecimal.ROUND_HALF_UP);
     }
 
+    @Transactional
     public boolean deleteSale(Long id) {
-        if (saleRepository.existsById(id)) { // Verifica si el ID existe antes de eliminar
-            saleRepository.deleteById(id);
-            return true; // Se eliminó correctamente
+        Sale sale = saleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        // Restaurar el stock de los productos antes de eliminar la venta
+        restoreStockFromSale(sale);
+
+        // Si la venta está en estado CANCELED, lanzar excepción
+        if (sale.getStatus().equals(SaleStatus.CANCELED)) {
+            throw new RuntimeException("No se puede eliminar una venta que ya ha sido anulada.");
         }
-        return false; // No se encontró el ID, no se eliminó nada
+        // Eliminar la venta
+
+            saleRepository.delete(sale);
+
+
+        return true;
+    }
+
+    @Transactional
+    public SaleResponseDTO changeState(Long id) {
+        Sale sale = saleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        if (sale.getStatus().equals(SaleStatus.CONFIRMED)) {
+            sale.setStatus(SaleStatus.CANCELED);
+            restoreStockFromSale(sale); // 🟢 Restaurar stock al anular
+        } else if (sale.getStatus().equals(SaleStatus.CANCELED)) {
+            sale.setStatus(SaleStatus.CONFIRMED);
+            deductStockFromSale(sale); // 🔴 Restar stock al confirmar de nuevo
+        }
+
+        return this.convertToDTO(saleRepository.save(sale));
+    }
+
+    private void restoreStockFromSale(Sale sale) {
+        for (SaleDetail detail : sale.getSaleDetails()) {
+            Product product = detail.getProduct();
+            product.setStock(product.getStock().add(detail.getQuantity())); // Restaurar stock
+            productRepository.save(product); // Guardar cambios en la BD
+        }
+    }
+
+    private void deductStockFromSale(Sale sale) {
+        for (SaleDetail detail : sale.getSaleDetails()) {
+            Product product = detail.getProduct();
+
+            // Validar que haya stock suficiente antes de restar
+            if (product.getStock().compareTo(detail.getQuantity()) < 0) {
+                throw new RuntimeException("Stock insuficiente para reactivar la venta del producto ID: " + product.getId());
+            }
+
+            product.setStock(product.getStock().subtract(detail.getQuantity())); // 🔴 Volver a restar stock
+            productRepository.save(product);
+        }
     }
 
 }

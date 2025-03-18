@@ -51,4 +51,8 @@ public class SaleController {
     }
 
 
+    @PatchMapping("/change-status/{id}")
+    public ResponseEntity<?> changeStatus(@PathVariable Long id){
+        return  ResponseEntity.ok(saleService.changeState(id));
+    }
 }
