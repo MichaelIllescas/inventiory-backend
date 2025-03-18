@@ -32,39 +32,34 @@ public class SaleService {
      */
     @Transactional
     public SaleResponseDTO createSale(SaleRequestDTO saleDTO, HttpServletRequest request) {
-        // Obtener usuario desde la cookie
         User user = cookieService.getUserFromCookie(request)
                 .orElseThrow(() -> new ClientException("Usuario no autenticado. No se puede registrar la venta."));
 
-        // Crear la venta
         Sale sale = new Sale();
         sale.setUser(user);
         sale.setPaymentMethod(PaymentMethod.valueOf(saleDTO.getPaymentMethod()));
         sale.setStatus(SaleStatus.CONFIRMED);
         sale.setDiscountApplied(saleDTO.getDiscountApplied() != null ? saleDTO.getDiscountApplied() : BigDecimal.ZERO);
 
-        // Asociar cliente si se envió en la solicitud
         if (saleDTO.getClientId() != null) {
             sale.setCustomer(clientRepository.findById(saleDTO.getClientId())
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado")));
         }
 
-        // Procesar los detalles de venta con FIFO y reducción de stock
         List<SaleDetail> details = saleDTO.getProducts().stream().map(dto -> {
             Product product = productRepository.findById(dto.getProductId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-            // Obtener el costo de compra real según FIFO
-            BigDecimal costoUnitario = calcularCostoReal(dto.getProductId(), dto.getQuantity());
-
-            // Reducir stock del producto
-            if (product.getStock().compareTo(dto.getQuantity()) < 0) {
+            BigDecimal totalStockDisponible = product.getStock();
+            if (totalStockDisponible.compareTo(dto.getQuantity()) < 0) {
                 throw new RuntimeException("Stock insuficiente para el producto ID: " + product.getId());
             }
-            product.setStock(product.getStock().subtract(dto.getQuantity()));
-            productRepository.save(product); // Guardar el nuevo stock
 
-            // Crear detalle de venta
+            BigDecimal costoUnitario = calcularCostoReal(dto.getProductId(), dto.getQuantity());
+
+            product.setStock(product.getStock().subtract(dto.getQuantity()));
+            productRepository.save(product);
+
             SaleDetail detail = new SaleDetail();
             detail.setSale(sale);
             detail.setProduct(product);
@@ -79,12 +74,9 @@ public class SaleService {
         sale.setSaleDetails(details);
         calcularTotales(sale);
 
-        // Guardar la venta en la base de datos
         Sale savedSale = saleRepository.save(sale);
-
         return convertToDTO(savedSale);
     }
-
     /**
      * Obtiene todas las ventas y las convierte a DTOs.
      */
@@ -190,45 +182,42 @@ public class SaleService {
     private BigDecimal calcularCostoReal(Long productId, BigDecimal cantidadVendida) {
         List<Purchase> compras = purchaseRepository.findByProductIdAndStateOrderByPurchaseDateAsc(productId, true);
 
+        compras = compras.stream()
+                .filter(p -> p.getRemainingStock().compareTo(BigDecimal.ZERO) > 0)
+                .collect(Collectors.toList());
+
         if (compras.isEmpty()) {
-            throw new RuntimeException("No hay historial de compras para el producto ID: " + productId);
+            throw new RuntimeException("No hay compras disponibles con stock para el producto ID: " + productId);
         }
 
         BigDecimal cantidadRestante = cantidadVendida;
         BigDecimal costoTotal = BigDecimal.ZERO;
 
         for (Purchase compra : compras) {
-            if (cantidadRestante.compareTo(BigDecimal.ZERO) == 0) break; // Si ya asignamos todo, salimos
+            if (cantidadRestante.compareTo(BigDecimal.ZERO) == 0) break;
 
             BigDecimal cantidadDisponible = compra.getRemainingStock();
+            BigDecimal cantidadTomada = cantidadRestante.min(cantidadDisponible);
+            BigDecimal costoParcial = cantidadTomada.multiply(compra.getPurchasePrice());
 
-            if (cantidadDisponible.compareTo(BigDecimal.ZERO) > 0) {
-                // Se toma la menor cantidad entre lo disponible y lo requerido
-                BigDecimal cantidadTomada = cantidadRestante.min(cantidadDisponible);
-                BigDecimal costoParcial = cantidadTomada.multiply(compra.getPurchasePrice());
+            compra.setRemainingStock(compra.getRemainingStock().subtract(cantidadTomada));
 
-                // Restar del stock restante de esa compra
-                compra.setRemainingStock(compra.getRemainingStock().subtract(cantidadTomada));
-
-                // Si el stock de la compra llega a 0, pasamos a la siguiente
-                if (compra.getRemainingStock().compareTo(BigDecimal.ZERO) == 0) {
-                    compra.setState(false); // Opcional: Desactivar la compra si se agotó
-                }
-
-                purchaseRepository.save(compra);
-
-                costoTotal = costoTotal.add(costoParcial);
-                cantidadRestante = cantidadRestante.subtract(cantidadTomada);
+            if (compra.getRemainingStock().compareTo(BigDecimal.ZERO) == 0) {
+                compra.setState(false);
             }
+
+            purchaseRepository.save(compra);
+
+            costoTotal = costoTotal.add(costoParcial);
+            cantidadRestante = cantidadRestante.subtract(cantidadTomada);
         }
 
         if (cantidadRestante.compareTo(BigDecimal.ZERO) > 0) {
-            throw new RuntimeException("No hay suficiente stock disponible para el producto ID: " + productId);
+            throw new RuntimeException("Stock insuficiente para completar la venta del producto ID: " + productId);
         }
 
         return costoTotal.divide(cantidadVendida, 2, BigDecimal.ROUND_HALF_UP);
     }
-
     @Transactional
     public boolean deleteSale(Long id) {
         Sale sale = saleRepository.findById(id)
@@ -268,21 +257,18 @@ public class SaleService {
     private void restoreStockFromSale(Sale sale) {
         for (SaleDetail detail : sale.getSaleDetails()) {
             Product product = detail.getProduct();
-            product.setStock(product.getStock().add(detail.getQuantity())); // Restaurar stock
-            productRepository.save(product); // Guardar cambios en la BD
+            product.setStock(product.getStock().add(detail.getQuantity()));
+            productRepository.save(product);
         }
     }
 
     private void deductStockFromSale(Sale sale) {
         for (SaleDetail detail : sale.getSaleDetails()) {
             Product product = detail.getProduct();
-
-            // Validar que haya stock suficiente antes de restar
             if (product.getStock().compareTo(detail.getQuantity()) < 0) {
                 throw new RuntimeException("Stock insuficiente para reactivar la venta del producto ID: " + product.getId());
             }
-
-            product.setStock(product.getStock().subtract(detail.getQuantity())); // 🔴 Volver a restar stock
+            product.setStock(product.getStock().subtract(detail.getQuantity()));
             productRepository.save(product);
         }
     }
