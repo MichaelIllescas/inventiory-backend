@@ -1,6 +1,7 @@
 package com.imperial_net.inventioryApp.controllers;
 
 import com.imperial_net.inventioryApp.dto.DailyIncomeResponse;
+import com.imperial_net.inventioryApp.dto.ProfitabilityDTO;
 import com.imperial_net.inventioryApp.dto.TopCustomerResponse;
 import com.imperial_net.inventioryApp.dto.TopSellingProductResponse;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,12 @@ public class ReportsController {
     public ResponseEntity<List<TopSellingProductResponse>> getTopSellingProducts(@RequestParam String month) {
         YearMonth selectedMonth = YearMonth.parse(month);
         List<TopSellingProductResponse> response = reportService.getTopSellingProducts(selectedMonth);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/profitability")
+    public ResponseEntity<ProfitabilityDTO> getProfitability(@RequestParam Integer year) {
+        int selectedYear = year;
+        ProfitabilityDTO response = reportService.getProfitabilityByYear(selectedYear);
         return ResponseEntity.ok(response);
     }
 
