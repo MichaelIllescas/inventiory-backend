@@ -122,6 +122,7 @@ public class UserService {
         user.setEmail(userRequest.getEmail());
         user.setRole(userRequest.getRole());
         user.setRegistrationDate(user.getRegistrationDate());
+        user.setEnabled(userRequest.getState().equals("ACTIVO")?true:false);
 
         userRepository.save(user);
     }

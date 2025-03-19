@@ -1,6 +1,7 @@
 package com.imperial_net.inventioryApp.exceptions;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -83,15 +84,23 @@ public class GlobalExceptionHandler {
     // 🔹 Nueva: Manejo de validaciones en parámetros de consulta (Jakarta Validation)
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
-    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("error", ex.getMessage());
+    public ResponseEntity<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException ex) {
+        Map<String, Object> errorResponse = new HashMap<>();
+
+        // Obtener el primer mensaje de error si hay más de uno
+        String errorMessage = ex.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .findFirst() // Obtener solo el primer mensaje
+                .orElse("Error de validación desconocido");
+
+        errorResponse.put("error", errorMessage); // Devolver como un solo valor en la clave "error"
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         return new ResponseEntity<>(errorResponse, headers, HttpStatus.BAD_REQUEST);
     }
+
 
     // 🔹 Nueva: Manejo de recursos no encontrados (JPA/Hibernate)
     @ExceptionHandler(EntityNotFoundException.class)

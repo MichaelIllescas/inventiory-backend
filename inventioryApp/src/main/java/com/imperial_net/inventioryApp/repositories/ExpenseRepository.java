@@ -14,6 +14,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findAllByCreatedBy_Id(Long userId);
     List<Expense> findByDateBetween(LocalDate startDate, LocalDate endDate);
     List <Expense> findByDate (LocalDate date);
-    @Query("SELECT e FROM Expense e WHERE e.date BETWEEN :startDate AND :endDate")
-    List<Expense> findExpensesBetweenDates(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    @Query("SELECT e FROM Expense e WHERE e.date BETWEEN :startDate AND :endDate AND e.createdBy.id = :userId ")
+    List<Expense> findExpensesBetweenDates(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
+                                           @Param("userId") Long userId);
 }

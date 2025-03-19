@@ -53,7 +53,6 @@ public class ProductService {
         User user = cookieService.getUserFromCookie(request)
                 .orElseThrow(() -> new ProductException("Usuario no autenticado. No se puede registrar el producto."));
 
-        System.out.println(productRepository.existsByCodeAndRegistratedBy_Id(productRequestDTO.getCode(), user.getId()));
         // Verificar si ya existe un producto con el mismo código
         if (productRepository.existsByCodeAndRegistratedBy_Id(productRequestDTO.getCode(), user.getId()) ){
 

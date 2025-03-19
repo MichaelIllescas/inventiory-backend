@@ -30,6 +30,9 @@ public class ClientService {
             throw new ClientException("El número de documento '" + clientDto.getDocumentNumber() + "' ya está registrado.");
         }
 
+        if (clientRepository.findByEmailAndCreatedBy_Id(clientDto.getEmail(), user.getId()).isPresent()){
+            throw new ClientException("El email '" + clientDto.getEmail() + "' ya está registrado en otro cliente.");
+        }
         Client client = convertToEntity(clientDto);
         client.setCreatedBy(user);
         client.setActive(true);
@@ -61,10 +64,27 @@ public class ClientService {
     }
 
     private void validateClientData(Long id, ClientRequestDTO clientRequest) {
+        // Validar si el número de documento ya está registrado
         clientRepository.findByDocumentNumber(clientRequest.getDocumentNumber())
                 .filter(existingClient -> !existingClient.getId().equals(id))
-                .ifPresent(c -> { throw new ClientException("El número de documento '" + clientRequest.getDocumentNumber() + "' ya está registrado."); });
+                .ifPresent(c -> {
+                    throw new ClientException("El número de documento '" + clientRequest.getDocumentNumber() + "' ya está registrado.");
+                });
+
+        // Validar si el email ya está registrado
+        clientRepository.findByEmail(clientRequest.getEmail())
+                .filter(existingClient -> !existingClient.getId().equals(id))
+                .ifPresent(c -> {
+                    throw new ClientException("El email '" + clientRequest.getEmail() + "' ya está registrado.");
+                });
+        if(clientRequest.getDocumentNumber().length()<7 || clientRequest.getDocumentNumber().length()>15){
+            throw new ClientException("El número de documento debe contener entre 7 y 15 dígitos.");
+        }
+        if(clientRequest.getPhone().length()<7 || clientRequest.getPhone().length()>15){
+            throw new ClientException("El teléfono debe contener entre 6 y 15 dígitos .");
+        }
     }
+
 
 
 

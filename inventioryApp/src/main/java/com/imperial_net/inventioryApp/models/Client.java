@@ -27,7 +27,7 @@ public class Client {
     private String lastname;
 
     @NotBlank(message = "El número de documento es obligatorio.")
-    @Pattern(regexp = "\\d{7,15}", message = "El número de documento debe contener entre 7 y 15 dígitos numéricos.")
+    @Pattern(regexp = "\\d{7,15}", message = "El número de documento debe contener entre 7 y 15 dígitos.")
     @Column(unique = true)
     private String documentNumber;
 
@@ -36,9 +36,10 @@ public class Client {
 
     @Email(message = "Debe ingresar un correo electrónico válido.")
     @Size(max = 100, message = "El email no puede superar los 100 caracteres.")
+    @Column(unique = true)
     private String email;
 
-    @Pattern(regexp = "\\+?\\d{7,15}", message = "El teléfono debe contener entre 7 y 15 dígitos numéricos, opcionalmente con un '+' al inicio.")
+    @Pattern(regexp = "\\+?\\d{6,15}", message = "El teléfono debe contener entre 6 y 15 dígitos numéricos, opcionalmente con un '+' al inicio.")
     private String phone;
 
     @Size(max = 255, message = "La dirección no puede superar los 255 caracteres.")

@@ -1,70 +1,55 @@
 package com.imperial_net.inventioryApp.controllers;
 
-import com.imperial_net.inventioryApp.dto.DailyIncomeResponse;
-import com.imperial_net.inventioryApp.dto.ProfitabilityDTO;
-import com.imperial_net.inventioryApp.dto.TopCustomerResponse;
-import com.imperial_net.inventioryApp.dto.TopSellingProductResponse;
+import com.imperial_net.inventioryApp.dto.*;
+import com.imperial_net.inventioryApp.services.ReportService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.imperial_net.inventioryApp.services.ReportService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
 @RestController
 @RequestMapping("/reports")
-@CrossOrigin("*")// Permite llamadas desde el frontend
+@CrossOrigin("*")
 @RequiredArgsConstructor
 public class ReportsController {
 
     private final ReportService reportService;
 
-
-
     @GetMapping("/daily-income")
-    public ResponseEntity<DailyIncomeResponse> getDailyIncome(@RequestParam String date) {
+    public ResponseEntity<DailyIncomeResponse> getDailyIncome(@RequestParam String date, HttpServletRequest request) {
         LocalDate selectedDate = LocalDate.parse(date);
-        DailyIncomeResponse response = reportService.getDailyIncome(selectedDate);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(reportService.getDailyIncome(selectedDate, request));
     }
+
     @GetMapping("/monthly-income")
-    public ResponseEntity<DailyIncomeResponse> getMonthlyIncome(@RequestParam String month) {
+    public ResponseEntity<DailyIncomeResponse> getMonthlyIncome(@RequestParam String month, HttpServletRequest request) {
         YearMonth selectedMonth = YearMonth.parse(month);
-        DailyIncomeResponse response = reportService.getMonthlyIncome(selectedMonth);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(reportService.getMonthlyIncome(selectedMonth, request));
     }
+
     @GetMapping("/annual-income")
-    public ResponseEntity<DailyIncomeResponse> getAnnualIncome(@RequestParam String year) {
-        int selectedYear = Integer.parseInt(year);
-        DailyIncomeResponse response = reportService.getAnnualIncome(selectedYear);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<DailyIncomeResponse> getAnnualIncome(@RequestParam Integer year, HttpServletRequest request) {
+        return ResponseEntity.ok(reportService.getAnnualIncome(year, request));
     }
+
     @GetMapping("/top-customers")
-    public ResponseEntity<List<TopCustomerResponse>> getTopCustomers(@RequestParam String month) {
+    public ResponseEntity<List<TopCustomerResponse>> getTopCustomers(@RequestParam String month, HttpServletRequest request) {
         YearMonth selectedMonth = YearMonth.parse(month);
-        List<TopCustomerResponse> response = reportService.getTopCustomersForMonth(selectedMonth);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(reportService.getTopCustomersForMonth(selectedMonth, request));
     }
+
     @GetMapping("/top-selling-products")
-    public ResponseEntity<List<TopSellingProductResponse>> getTopSellingProducts(@RequestParam String month) {
+    public ResponseEntity<List<TopSellingProductResponse>> getTopSellingProducts(@RequestParam String month, HttpServletRequest request) {
         YearMonth selectedMonth = YearMonth.parse(month);
-        List<TopSellingProductResponse> response = reportService.getTopSellingProducts(selectedMonth);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(reportService.getTopSellingProducts(selectedMonth, request));
     }
+
     @GetMapping("/profitability")
-    public ResponseEntity<ProfitabilityDTO> getProfitability(@RequestParam Integer year) {
-        int selectedYear = year;
-        ProfitabilityDTO response = reportService.getProfitabilityByYear(selectedYear);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ProfitabilityDTO> getProfitability(@RequestParam Integer year, HttpServletRequest request) {
+        return ResponseEntity.ok(reportService.getProfitabilityByYear(year, request));
     }
-
-
-
 }
-

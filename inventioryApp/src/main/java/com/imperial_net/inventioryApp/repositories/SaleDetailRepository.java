@@ -28,12 +28,13 @@ public interface SaleDetailRepository extends JpaRepository<SaleDetail, Long> {
             "FROM SaleDetail sd " +
             "JOIN sd.product p " +
             "JOIN sd.sale s " +
-            "WHERE s.saleDate BETWEEN :startDate AND :endDate " +
+            "WHERE s.saleDate BETWEEN :startDate AND :endDate AND s.user.id = :userId  " +
             "AND s.status = 'CONFIRMED' " +
             "GROUP BY p.name, p.code " +
             "ORDER BY SUM(sd.quantity) DESC " +
             "LIMIT 10") // Solo devuelve los 10 más vendidos
     List<Object[]> findTop10SellingProducts(@Param("startDate") LocalDate startDate,
-                                            @Param("endDate") LocalDate endDate);
+                                            @Param("endDate") LocalDate endDate,
+                                            @Param("userId") Long userId);
 
 }
