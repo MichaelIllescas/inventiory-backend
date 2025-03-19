@@ -32,4 +32,10 @@ public class SaleRequestDTO {
      * ID del cliente asociado (opcional).
      */
     private Long clientId;
+
+    /**
+     * porcentaje de aumento que se va a aplicar a la venta.
+     */
+    private BigDecimal extra_charge_percentage = BigDecimal.ZERO;
+
 }

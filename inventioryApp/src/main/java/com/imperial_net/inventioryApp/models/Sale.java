@@ -72,6 +72,8 @@ public class Sale {
      */
     @NotNull
     private BigDecimal discountApplied = BigDecimal.ZERO;
+    @NotNull
+    private BigDecimal extra_charge_percetage = BigDecimal.ZERO;
 
     /**
      * Ganancia neta después de aplicar descuentos.

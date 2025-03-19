@@ -19,4 +19,5 @@ public class SaleResponseDTO {
     private String paymentMethod;
     private String status;
     private ClientResponseDTO client; // Si la venta tiene un cliente, se devuelve el ID
+    private BigDecimal extra_charge_percentage = BigDecimal.ZERO;
 }

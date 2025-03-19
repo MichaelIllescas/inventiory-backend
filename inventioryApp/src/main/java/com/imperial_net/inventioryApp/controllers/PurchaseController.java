@@ -39,4 +39,9 @@ public class PurchaseController {
         PurchaseResponseDTO updatedPurchase = purchaseService.togglePurchaseStatus(id);
         return ResponseEntity.ok(updatedPurchase);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deletePurchase(@PathVariable Long id){
+        return ResponseEntity.ok(purchaseService.deletePurchase(id));
+    }
 }

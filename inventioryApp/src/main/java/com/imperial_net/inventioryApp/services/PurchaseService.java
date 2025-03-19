@@ -9,6 +9,7 @@ import com.imperial_net.inventioryApp.models.Purchase;
 import com.imperial_net.inventioryApp.models.User;
 import com.imperial_net.inventioryApp.repositories.PurchaseRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +57,7 @@ public class PurchaseService {
         Purchase purchase = purchaseRepository.findById(id)
                 .orElseThrow(() -> new ProductException("Compra no encontrada."));
 
-        Provider providerUpdate= providerService.getProviderById(purchaseRequestDTO.getProviderId());
+        Provider providerUpdate = providerService.getProviderById(purchaseRequestDTO.getProviderId());
         purchase.setPurchasePrice(purchaseRequestDTO.getPurchasePrice());
         purchase.setQuantity(purchaseRequestDTO.getQuantity());
         purchase.setPurchaseDate(purchaseRequestDTO.getPurchaseDate());
@@ -71,9 +72,9 @@ public class PurchaseService {
         Purchase purchase = purchaseRepository.findById(id)
                 .orElseThrow(() -> new ProductException("Compra no encontrada."));
 
-        if (purchase.getState()){
+        if (purchase.getState()) {
             purchase.setState(false);
-        }else {
+        } else {
             purchase.setState(true);
         }
 
@@ -82,7 +83,7 @@ public class PurchaseService {
         return toResponseDTO(purchase);
     }
 
-    public PurchaseResponseDTO toResponseDTO(Purchase purchase)     {
+    public PurchaseResponseDTO toResponseDTO(Purchase purchase) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return new PurchaseResponseDTO(
                 purchase.getId(),
@@ -93,7 +94,7 @@ public class PurchaseService {
                 purchase.getPurchaseDate().format(formatter),
                 purchase.getProvider().getName(),
                 purchase.getNotes(),
-                purchase.getState()?"ACTIVO":"ANULADO"
+                purchase.getState() ? "ACTIVO" : "ANULADO"
 
         );
     }
@@ -104,7 +105,35 @@ public class PurchaseService {
         purchase.setQuantity(dto.getQuantity());
         purchase.setPurchaseDate(dto.getPurchaseDate());
         purchase.setNotes(dto.getNotes());
-        purchase.setState((dto.getState().equals("ACTIVO")? true:false) );
+        purchase.setState((dto.getState().equals("ACTIVO") ? true : false));
         return purchase;
     }
+
+    @Transactional
+    public Boolean deletePurchase(Long id) {
+        Purchase purchase = purchaseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Compra no encontrada"));
+
+        try {
+            Product product = purchase.getProduct();
+
+            // Verificamos que no se intente restar más stock del disponible
+            if (product.getStock().compareTo(purchase.getQuantity()) < 0) {
+                throw new RuntimeException("No se puede eliminar la compra porque reduciría el stock a un valor negativo");
+            }
+
+            // Actualizar el stock antes de eliminar la compra
+            product.setStock(product.getStock().subtract(purchase.getQuantity()));
+            productService.saveProduct(product);
+
+            // Eliminar la compra
+            purchaseRepository.deleteById(id);
+
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("No se puede eliminar la compra seleccionada: " + e.getMessage());
+        }
+    }
+
+
 }

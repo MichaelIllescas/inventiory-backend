@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.http.HttpClient;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -40,7 +41,7 @@ public class SaleService {
         sale.setPaymentMethod(PaymentMethod.valueOf(saleDTO.getPaymentMethod()));
         sale.setStatus(SaleStatus.CONFIRMED);
         sale.setDiscountApplied(saleDTO.getDiscountApplied() != null ? saleDTO.getDiscountApplied() : BigDecimal.ZERO);
-
+        sale.setExtra_charge_percetage(saleDTO.getExtra_charge_percentage() != null ? saleDTO.getExtra_charge_percentage() : BigDecimal.ZERO);
         if (saleDTO.getClientId() != null) {
             sale.setCustomer(clientRepository.findById(saleDTO.getClientId())
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado")));
@@ -110,21 +111,26 @@ public class SaleService {
             totalCost = totalCost.add(detail.getCostPrice().multiply(detail.getQuantity()));
         }
 
+        // Obtener descuento y aumento
         BigDecimal discountPercentage = sale.getDiscountApplied() != null ? sale.getDiscountApplied() : BigDecimal.ZERO;
+        BigDecimal extraChargePercentage = sale.getExtra_charge_percetage() != null ? sale.getExtra_charge_percetage() : BigDecimal.ZERO;
 
-        // Convertir el porcentaje en un factor de multiplicación (Ej: 10% → 0.90)
-        BigDecimal discountFactor = BigDecimal.ONE.subtract(discountPercentage.divide(BigDecimal.valueOf(100)));
+        // Convertir los porcentajes en factores
+        BigDecimal discountFactor = BigDecimal.ONE.subtract(discountPercentage.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+        BigDecimal extraChargeFactor = BigDecimal.ONE.add(extraChargePercentage.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
 
-        // Aplicar el porcentaje de descuento
-        BigDecimal totalSaleWithDiscount = totalSale.multiply(discountFactor).setScale(2, BigDecimal.ROUND_HALF_UP);
+        // Aplicar descuento y aumento
+        BigDecimal totalSaleWithDiscount = totalSale.multiply(discountFactor).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalSaleWithIncrease = totalSaleWithDiscount.multiply(extraChargeFactor).setScale(2, RoundingMode.HALF_UP);
 
-        // Calcular la ganancia bruta con el total con descuento
-        BigDecimal grossProfit = totalSaleWithDiscount.subtract(totalCost);
+        // Calcular la ganancia bruta con el total ajustado
+        BigDecimal grossProfit = totalSaleWithIncrease.subtract(totalCost);
 
-        sale.setTotalSale(totalSaleWithDiscount); // Guardamos el total con el descuento aplicado
+        // Guardar los valores en la venta
+        sale.setTotalSale(totalSaleWithIncrease); // Ahora incluye descuentos y aumentos
         sale.setTotalCost(totalCost);
         sale.setGrossProfit(grossProfit);
-        sale.setNetProfit(grossProfit); // No es necesario restar descuento nuevamente porque ya está aplicado
+        sale.setNetProfit(grossProfit);
     }
 
     /**
@@ -142,6 +148,7 @@ public class SaleService {
         dto.setNetProfit(sale.getNetProfit());
         dto.setPaymentMethod(sale.getPaymentMethod().name());
         dto.setStatus(sale.getStatus().name());
+        dto.setExtra_charge_percentage(sale.getExtra_charge_percetage());
 
         if (sale.getCustomer() != null) {
             dto.setClient(clientService.convertToDto(clientRepository.findById(sale.getCustomer().getId()).get()));
