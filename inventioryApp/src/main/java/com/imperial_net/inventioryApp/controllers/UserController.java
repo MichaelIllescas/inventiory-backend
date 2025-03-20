@@ -1,9 +1,11 @@
 package com.imperial_net.inventioryApp.controllers;
 
+import com.imperial_net.inventioryApp.dto.ChangePasswordDTO;
 import com.imperial_net.inventioryApp.dto.UserDTO;
 import com.imperial_net.inventioryApp.dto.UserRequestDTO;
 import com.imperial_net.inventioryApp.models.User;
 import com.imperial_net.inventioryApp.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -51,4 +53,9 @@ public class UserController {
         }
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(HttpServletRequest request, @RequestBody ChangePasswordDTO changePasswordDTO) {
+        userService.changePassword(request, changePasswordDTO);
+        return ResponseEntity.ok("contraseña actualizada correctamente");
+    }
 }

@@ -1,11 +1,13 @@
 package com.imperial_net.inventioryApp.services;
 
+import com.imperial_net.inventioryApp.dto.ChangePasswordDTO;
 import com.imperial_net.inventioryApp.dto.UserDTO;
 import com.imperial_net.inventioryApp.dto.UserRequestDTO;
 import com.imperial_net.inventioryApp.exceptions.UserRegisterException;
 import com.imperial_net.inventioryApp.models.Role;
 import com.imperial_net.inventioryApp.models.User;
 import com.imperial_net.inventioryApp.repositories.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CookieService cookieService;
 
     public void insertAdminUser() {
         Optional<User> existingUser = userRepository.findByEmail("admin@admin.com");
@@ -145,6 +148,37 @@ public class UserService {
         if (newState.equals("INACTIVO")) {
             user.setEnabled(false);
         }
+        userRepository.save(user);
+    }
+
+    public void changePassword(HttpServletRequest request, ChangePasswordDTO changePasswordDTO){
+        //OBTENER EL USUARIO DESDE LA COOKIE
+        Optional<User> optionalUser= cookieService.getUserFromCookie (request);
+
+        if(optionalUser.isEmpty()){
+            throw new RuntimeException("Usuario no autenticado");
+        }
+        User user = optionalUser.get();
+        // Verificar si la contraseña actual es correcta
+        if(!passwordEncoder.matches(changePasswordDTO.getCurrentPassword(), user.getPassword())){
+            throw new RuntimeException("La contraseña actual es incorrecta");
+        }
+        // validar que la nueva contraseña y la repeticion coincidan
+
+        if(!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getRepeatPassword())){
+            throw new RuntimeException("Las nuevas contraseñas no coinciden");
+        }
+        // validar que la nueva contraseña sea diferente de la actual
+
+        if(passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())){
+            throw new RuntimeException("La nueva contraseña no puede ser igual a la actual");
+        }
+        // encriptar y actualizar la nueva contraseña
+
+        String hashedNewPassword = passwordEncoder.encode(changePasswordDTO.getNewPassword());
+        user.setPassword(hashedNewPassword);
+
+        // guardar el usuario con la nueva contraseña
         userRepository.save(user);
     }
 }
