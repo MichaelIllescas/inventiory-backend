@@ -181,4 +181,17 @@ public class UserService {
         // guardar el usuario con la nueva contraseña
         userRepository.save(user);
     }
+
+    public UserDTO getUserSession(HttpServletRequest request) {
+        //OBTENER EL USUARIO DESDE LA COOKIE
+        Optional<User> optionalUser= cookieService.getUserFromCookie (request);
+
+        if(optionalUser.isEmpty()){
+            throw new RuntimeException("Usuario no autenticado");
+        }
+        User user = optionalUser.get();
+
+        return  this.toDTO(user);
+
+    }
 }

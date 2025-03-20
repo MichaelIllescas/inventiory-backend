@@ -58,4 +58,9 @@ public class UserController {
         userService.changePassword(request, changePasswordDTO);
         return ResponseEntity.ok("contraseña actualizada correctamente");
     }
+
+    @GetMapping("/getUserSession")
+    public  ResponseEntity<UserDTO> getUserSession (HttpServletRequest request){
+        return ResponseEntity.ok(userService.getUserSession(request));
+    }
 }
