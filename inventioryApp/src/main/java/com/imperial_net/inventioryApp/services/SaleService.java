@@ -280,4 +280,7 @@ public class SaleService {
         }
     }
 
+    public List<SaleResponseDTO> getSalesToClient(Long id) {
+         return  saleRepository.findAllByCustomerId(id).stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
 }

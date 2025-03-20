@@ -1,5 +1,6 @@
 package com.imperial_net.inventioryApp.repositories;
 
+import com.imperial_net.inventioryApp.dto.SaleResponseDTO;
 import com.imperial_net.inventioryApp.models.Sale;
 import com.imperial_net.inventioryApp.models.SaleStatus;
 import com.imperial_net.inventioryApp.models.User;
@@ -74,4 +75,6 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     List<Object[]> findTopCustomersForMonth(@Param("startDate") LocalDate startDate,
                                             @Param("endDate") LocalDate endDate,
                                             @Param("userId") Long userId);
+
+    List<Sale>findAllByCustomerId(Long id);
 }

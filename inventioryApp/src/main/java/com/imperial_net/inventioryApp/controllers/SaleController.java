@@ -55,4 +55,10 @@ public class SaleController {
     public ResponseEntity<?> changeStatus(@PathVariable Long id){
         return  ResponseEntity.ok(saleService.changeState(id));
     }
+
+
+    @GetMapping("/client/{id}")
+    public ResponseEntity<?> salesToClient (@PathVariable Long id){
+        return  ResponseEntity.ok(saleService.getSalesToClient(id));
+    }
 }
