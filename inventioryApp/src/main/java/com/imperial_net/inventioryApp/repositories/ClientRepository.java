@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface ClientRepository extends JpaRepository<Client, Long> {
     List<Client> findAllByCreatedBy_Id(Long userId);
-    Optional<Client> findByDocumentNumber(String documentNumber);
+    Optional<Client> findByDocumentNumberAndCreatedBy_Id(String documentNumber, Long userId);
 
 
     Optional<Client> findByEmailAndCreatedBy_Id(@Email(message = "Debe ingresar un correo electrónico válido.") @Size(max = 100, message = "El email no puede superar los 100 caracteres.") String email, Long id);

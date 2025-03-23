@@ -14,8 +14,11 @@ import java.time.LocalDate;
 @Data
 public class PurchaseRequestDTO {
 
-    @NotNull(message = "El ID del producto es obligatorio.")
+    @NotNull(message = "El codigo del producto es obligatorio.")
+    private String productCode;
+
     private Long productId;
+
 
     @NotNull(message = "El ID del proveedor es obligatorio.")
     private Long providerId;

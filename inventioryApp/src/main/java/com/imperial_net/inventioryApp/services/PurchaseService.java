@@ -53,7 +53,7 @@ public class PurchaseService {
                 .collect(Collectors.toList());
     }
 
-    public PurchaseResponseDTO updatePurchase(Long id, PurchaseRequestDTO purchaseRequestDTO) {
+    public PurchaseResponseDTO updatePurchase(Long id, PurchaseRequestDTO purchaseRequestDTO, HttpServletRequest request) {
         Purchase purchase = purchaseRepository.findById(id)
                 .orElseThrow(() -> new ProductException("Compra no encontrada."));
 
@@ -63,6 +63,11 @@ public class PurchaseService {
         purchase.setPurchaseDate(purchaseRequestDTO.getPurchaseDate());
         purchase.setNotes(purchaseRequestDTO.getNotes());
         purchase.setProvider(providerUpdate);
+
+        Product product = productService.getProductByCode(purchaseRequestDTO.getProductCode(), request);
+
+        product.setStock(purchaseRequestDTO.getQuantity());
+        productService.saveProduct(product);
 
         purchaseRepository.save(purchase);
         return toResponseDTO(purchase);

@@ -4,6 +4,7 @@ import com.imperial_net.inventioryApp.models.Brand;
 import com.imperial_net.inventioryApp.models.Product;
 import com.imperial_net.inventioryApp.models.Provider;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -33,4 +34,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "AND p.state = true " +
             "ORDER BY p.stock ASC")
     List<Product> findLowStockProductsByUser(@Param("userId") Long userId);
+
+    Optional<Product> findByCodeAndRegistratedBy_Id(String productCode, Long userId);
 }

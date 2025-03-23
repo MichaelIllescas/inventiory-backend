@@ -81,7 +81,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getSession(@CookieValue(name = "authToken", required = false) String jwtToken) {
+    public ResponseEntity<?> getSession(@CookieValue(name = "authToken", required = false) String jwtToken, HttpServletRequest request) {
         if (jwtToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No hay sesión activa");
         }
@@ -94,9 +94,13 @@ public class AuthController {
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
+            UserDTO user = userService.getUserSession(request);
+
             Map<String, Object> response = new HashMap<>();
             response.put("username", userDetails.getUsername());
             response.put("roles", userDetails.getAuthorities());
+            response.put("Name", user.getFirstName());
+
 
             return ResponseEntity.ok(response);
 

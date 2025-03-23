@@ -45,7 +45,7 @@ public class User implements UserDetails
     private String documentNumber;
 
     @NotBlank(message = "El teléfono no puede estar vacío.")
-    @Pattern(regexp = "\\d{6,12}", message = "El DNI debe tener entre 6 y 12 dígitos.")
+    @Pattern(regexp = "\\d{6,16}", message = "El Telefono debe tener entre 6 y 15 dígitos.")
     @Column(nullable = false)
     private String phone;
 

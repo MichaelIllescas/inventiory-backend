@@ -18,7 +18,7 @@ public class CompanyRequestDTO {
     private String businessAddress;
 
     @NotBlank(message = "El CUIT es obligatorio.")
-    @Pattern(regexp = "\\d{11}", message = "El CUIT debe contener exactamente 11 dígitos.")
+    @Pattern(regexp = "\\+?\\d{10,15}", message = "El CUIT debe contener al menos 11 dígitos.")
     private String taxIdentificationNumber;
 
     @Pattern(regexp = "\\+?\\d{6,15}", message = "El teléfono debe contener entre 6 y 15 dígitos, opcionalmente comenzando con '+'.")

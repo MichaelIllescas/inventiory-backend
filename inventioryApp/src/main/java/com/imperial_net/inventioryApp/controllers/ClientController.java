@@ -31,8 +31,8 @@ public class ClientController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateClient(
-            @PathVariable Long id, @RequestBody ClientRequestDTO clientRequest) {
-        clientService.updateClient(id, clientRequest);
+            @PathVariable Long id, @RequestBody ClientRequestDTO clientRequest, HttpServletRequest request) {
+        clientService.updateClient(id, clientRequest, request);
         return ResponseEntity.status(HttpStatus.OK).body("Cliente actualizado correctamente");
     }
 

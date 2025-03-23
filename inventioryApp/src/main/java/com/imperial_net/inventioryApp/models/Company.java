@@ -30,7 +30,7 @@ public class Company {
     private String businessAddress;
 
     @NotBlank(message = "El CUIT es obligatorio.")
-    @Pattern(regexp = "\\d{11}", message = "El CUIT debe contener exactamente 11 dígitos.")
+    @Pattern(regexp = "\\+?\\d{10,15}", message = "El CUIT debe contener al menos 11 dígitos.")
     @Column(nullable = false, unique = true, length = 11)
     private String taxIdentificationNumber;
 

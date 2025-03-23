@@ -29,8 +29,8 @@ public class PurchaseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PurchaseResponseDTO> updatePurchase(@PathVariable Long id, @RequestBody PurchaseRequestDTO purchaseRequestDTO) {
-        PurchaseResponseDTO updatedPurchase = purchaseService.updatePurchase(id, purchaseRequestDTO);
+    public ResponseEntity<PurchaseResponseDTO> updatePurchase(@PathVariable Long id, @RequestBody PurchaseRequestDTO purchaseRequestDTO, HttpServletRequest request) {
+        PurchaseResponseDTO updatedPurchase = purchaseService.updatePurchase(id, purchaseRequestDTO, request);
         return ResponseEntity.ok(updatedPurchase);
     }
 

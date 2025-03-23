@@ -215,4 +215,10 @@ public class ProductService {
     }
 
 
+    public Product getProductByCode(String productCode, HttpServletRequest request) {
+        Long userId = cookieService.getUserFromCookie(request)
+                .map(User::getId)
+                .orElseThrow(() -> new ProductException("Usuario no autenticado"));
+        return productRepository.findByCodeAndRegistratedBy_Id(productCode, userId).get();
+    }
 }

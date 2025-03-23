@@ -146,8 +146,8 @@ public class SaleService {
         dto.setGrossProfit(sale.getGrossProfit());
         dto.setDiscountApplied(sale.getDiscountApplied());
         dto.setNetProfit(sale.getNetProfit());
-        dto.setPaymentMethod(sale.getPaymentMethod().name());
-        dto.setStatus(sale.getStatus().name());
+        dto.setPaymentMethod(sale.getPaymentMethod().getDescripcion());
+        dto.setStatus(sale.getStatus().getDescripcion());
         dto.setExtra_charge_percentage(sale.getExtra_charge_percetage());
 
         if (sale.getCustomer() != null) {

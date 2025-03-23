@@ -26,7 +26,7 @@ public class ClientService {
         User user = cookieService.getUserFromCookie(request)
                 .orElseThrow(() -> new ClientException("Usuario no autenticado. No se puede registrar el cliente."));
 
-        if (clientRepository.findByDocumentNumber(clientDto.getDocumentNumber()).isPresent()) {
+        if (clientRepository.findByDocumentNumberAndCreatedBy_Id(clientDto.getDocumentNumber(), user.getId()).isPresent()) {
             throw new ClientException("El número de documento '" + clientDto.getDocumentNumber() + "' ya está registrado.");
         }
 
@@ -51,11 +51,11 @@ public class ClientService {
                 .toList();
     }
 
-    public void updateClient(Long id, ClientRequestDTO clientRequest) {
+    public void updateClient(Long id, ClientRequestDTO clientRequest, HttpServletRequest request) {
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientException("Cliente no encontrado en la base de datos"));
 
-        validateClientData(id, clientRequest);
+        validateClientData(id, clientRequest, request);
 
         updateEntity(client, clientRequest);
         client.setUpdateDate(LocalDate.now());
@@ -63,9 +63,12 @@ public class ClientService {
         clientRepository.save(client);
     }
 
-    private void validateClientData(Long id, ClientRequestDTO clientRequest) {
+    private void validateClientData(Long id, ClientRequestDTO clientRequest, HttpServletRequest request) {
         // Validar si el número de documento ya está registrado
-        clientRepository.findByDocumentNumber(clientRequest.getDocumentNumber())
+        User user = cookieService.getUserFromCookie(request)
+                .orElseThrow(() -> new ClientException("Usuario no autenticado. No se puede registrar el cliente."));
+
+        clientRepository.findByDocumentNumberAndCreatedBy_Id(clientRequest.getDocumentNumber(), user.getId())
                 .filter(existingClient -> !existingClient.getId().equals(id))
                 .ifPresent(c -> {
                     throw new ClientException("El número de documento '" + clientRequest.getDocumentNumber() + "' ya está registrado.");
@@ -80,7 +83,7 @@ public class ClientService {
         if(clientRequest.getDocumentNumber().length()<7 || clientRequest.getDocumentNumber().length()>15){
             throw new ClientException("El número de documento debe contener entre 7 y 15 dígitos.");
         }
-        if(clientRequest.getPhone().length()<7 || clientRequest.getPhone().length()>15){
+        if(clientRequest.getPhone().length()<7 || clientRequest.getPhone().length()>16){
             throw new ClientException("El teléfono debe contener entre 6 y 15 dígitos .");
         }
     }
