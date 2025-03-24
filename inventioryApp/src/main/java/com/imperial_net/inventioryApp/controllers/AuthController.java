@@ -2,9 +2,7 @@ package com.imperial_net.inventioryApp.controllers;
 
 
 
-import com.imperial_net.inventioryApp.dto.AuthenticationRequest;
-import com.imperial_net.inventioryApp.dto.AuthenticationResponse;
-import com.imperial_net.inventioryApp.dto.UserDTO;
+import com.imperial_net.inventioryApp.dto.*;
 import com.imperial_net.inventioryApp.exceptions.DisabledUserException;
 import com.imperial_net.inventioryApp.exceptions.InvalidCredentialsException;
 import com.imperial_net.inventioryApp.security.JwtService;
@@ -107,5 +105,19 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sesión inválida");
         }
+    }
+
+
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody EmailRequest request) {
+        userService.sendResetToken(request.getEmail());
+        return ResponseEntity.ok("Si el correo está registrado, se envió el enlace.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok("Contraseña actualizada con éxito.");
     }
 }

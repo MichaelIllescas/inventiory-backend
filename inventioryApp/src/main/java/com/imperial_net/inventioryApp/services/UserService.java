@@ -4,17 +4,22 @@ import com.imperial_net.inventioryApp.dto.ChangePasswordDTO;
 import com.imperial_net.inventioryApp.dto.UserDTO;
 import com.imperial_net.inventioryApp.dto.UserRequestDTO;
 import com.imperial_net.inventioryApp.exceptions.UserRegisterException;
+import com.imperial_net.inventioryApp.models.ResetToken;
 import com.imperial_net.inventioryApp.models.Role;
 import com.imperial_net.inventioryApp.models.User;
+import com.imperial_net.inventioryApp.repositories.ResetTokenRepository;
 import com.imperial_net.inventioryApp.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +29,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CookieService cookieService;
+    private final ResetTokenRepository resetTokenRepository;
+    private final EmailService emailService;
 
     public void insertAdminUser() {
         Optional<User> existingUser = userRepository.findByEmail("admin@admin.com");
@@ -194,4 +201,51 @@ public class UserService {
         return  this.toDTO(user);
 
     }
+
+
+
+    public void sendResetToken(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) return;
+
+        User user = userOpt.get();
+        String token = UUID.randomUUID().toString();
+        ResetToken resetToken = new ResetToken(token, user, LocalDateTime.now().plusMinutes(30));
+        resetTokenRepository.save(resetToken);
+
+        // 👉 URL directamente en el método
+        String link = "http://localhost:3000/reset-password?token=" + token;
+
+        emailService.send(
+                email,
+                "Recuperación de contraseña",
+                "Haz clic en el siguiente enlace para restablecer tu contraseña:\n" + link + "\n\nEste enlace expirará en 30 minutos."
+        );
+    }
+
+
+    public void resetPassword(String token, String newPassword) {
+        // Buscar el token en la base de datos
+        ResetToken resetToken = resetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Token inválido"));
+
+        // Verificar si el token expiró
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("El enlace de recuperación ha expirado.");
+        }
+
+        // Obtener el usuario asociado al token
+        User user = resetToken.getUser();
+
+        // Codificar la nueva contraseña
+        String hashedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(hashedPassword);
+
+        // Guardar el usuario con la nueva contraseña
+        userRepository.save(user);
+
+        // Eliminar el token para que no se pueda volver a usar
+        resetTokenRepository.delete(resetToken);
+    }
+
 }
