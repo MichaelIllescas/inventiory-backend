@@ -164,4 +164,30 @@ public class ReportService {
         return cookieService.getUserFromCookie(request)
                 .orElseThrow(() -> new ProductException("Usuario no autenticado. No se puede procesar la solicitud."));
     }
+
+    public DailyIncomeResponse getTodayIncome(HttpServletRequest request) {
+        LocalDate today = LocalDate.now();
+        return getDailyIncome(today, request);
+    }
+
+    public DailyIncomeResponse getCurrentQuarterIncome(HttpServletRequest request) {
+        User user = getUserFromCookie(request);
+        LocalDate today = LocalDate.now();
+
+        int currentMonth = today.getMonthValue();
+        int currentYear = today.getYear();
+
+        // Determinar el trimestre actual
+        int startMonth = ((currentMonth - 1) / 3) * 3 + 1;
+        LocalDate startDate = LocalDate.of(currentYear, startMonth, 1);
+        LocalDate endDate = startDate.plusMonths(2).withDayOfMonth(startDate.plusMonths(2).lengthOfMonth());
+
+        return calculateIncome(startDate, endDate, user.getId());
+    }
+
+    public List<TopCustomerResponse> getTopCustomersOfCurrentMonth(HttpServletRequest request) {
+        YearMonth currentMonth = YearMonth.now();
+        return getTopCustomersForMonth(currentMonth, request);
+    }
+
 }

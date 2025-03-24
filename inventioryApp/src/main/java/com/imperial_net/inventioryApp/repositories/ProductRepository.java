@@ -24,6 +24,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     boolean existsByCodeAndRegistratedBy_Id(String code, Long userId);
 
+    Long countByRegistratedBy_Id(Long userId);
+
 
     Optional<Product> findByCode(String code);
 
