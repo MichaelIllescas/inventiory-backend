@@ -16,4 +16,6 @@ public interface PurchaseRepository extends JpaRepository<Purchase,Long> {
     @Query("SELECT p FROM Purchase p WHERE p.registredBy.id = :userId AND p.state = true AND p.remainingStock > 0")
     List<Purchase> findActivePurchasesWithStockByUser(@Param("userId") Long userId);
 
+    List<Purchase> findAllByRegistredById(Long userId);
+
 }

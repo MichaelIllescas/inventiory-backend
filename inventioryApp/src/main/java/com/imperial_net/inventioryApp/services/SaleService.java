@@ -53,7 +53,8 @@ public class SaleService {
 
             BigDecimal totalStockDisponible = product.getStock();
             if (totalStockDisponible.compareTo(dto.getQuantity()) < 0) {
-                throw new RuntimeException("Stock insuficiente para el producto ID: " + product.getId());
+                throw new RuntimeException("Stock insuficiente para el producto Código: " + product.getCode() + " - " + product.getName() +". Cantidad disponible: " + product.getStock().setScale(2, RoundingMode.HALF_UP)
+                );
             }
 
             BigDecimal costoUnitario = calcularCostoReal(dto.getProductId(), dto.getQuantity());
@@ -194,7 +195,7 @@ public class SaleService {
                 .collect(Collectors.toList());
 
         if (compras.isEmpty()) {
-            throw new RuntimeException("No hay compras disponibles con stock para el producto ID: " + productId);
+            throw new RuntimeException("No hay compras disponibles con stock para el producto Código: " + productRepository.findById(productId).get().getCode() );
         }
 
         BigDecimal cantidadRestante = cantidadVendida;
@@ -220,7 +221,7 @@ public class SaleService {
         }
 
         if (cantidadRestante.compareTo(BigDecimal.ZERO) > 0) {
-            throw new RuntimeException("Stock insuficiente para completar la venta del producto ID: " + productId);
+            throw new RuntimeException("Stock insuficiente para completar la venta del producto Código: " + productRepository.findById(productId).get().getCode() );
         }
 
         return costoTotal.divide(cantidadVendida, 2, BigDecimal.ROUND_HALF_UP);

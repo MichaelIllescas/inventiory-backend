@@ -32,6 +32,7 @@ public class PurchaseService {
                 .orElseThrow(() -> new ProductException("No se encontró una sesión válida. Inicie sesión para registrar compras."));
 
         Product product = productService.getProductById(purchaseRequestDTO.getProductId());
+
         Provider provider = providerService.getProviderById(purchaseRequestDTO.getProviderId());
 
         Purchase purchase = this.toEntity(purchaseRequestDTO);
@@ -47,8 +48,11 @@ public class PurchaseService {
         return this.toResponseDTO(purchase);
     }
 
-    public List<PurchaseResponseDTO> getAllPurchases() {
-        return purchaseRepository.findAll().stream()
+    public List<PurchaseResponseDTO> getAllPurchases( HttpServletRequest request) {
+
+        User user = cookieService.getUserFromCookie(request)
+                .orElseThrow(() -> new ProductException("No se encontró una sesión válida. Inicie sesión para registrar compras."));
+        return purchaseRepository.findAllByRegistredById(user.getId()).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }

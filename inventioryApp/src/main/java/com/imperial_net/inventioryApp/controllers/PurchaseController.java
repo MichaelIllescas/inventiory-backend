@@ -23,8 +23,8 @@ public class PurchaseController {
     }
 
     @GetMapping ("/getPurchases")
-    public ResponseEntity<List<PurchaseResponseDTO>> getAllPurchases() {
-        List<PurchaseResponseDTO> purchases = purchaseService.getAllPurchases();
+    public ResponseEntity<List<PurchaseResponseDTO>> getAllPurchases( HttpServletRequest request) {
+        List<PurchaseResponseDTO> purchases = purchaseService.getAllPurchases( request);
         return ResponseEntity.ok(purchases);
     }
 
