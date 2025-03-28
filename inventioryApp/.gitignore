@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Evitar subir credenciales
+src/main/resources/application.properties
