@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration corsConfiguration = new CorsConfiguration();
                     corsConfiguration.setAllowedOriginPatterns(Arrays.asList(
-                            "http://inventiory.com",   "https://inventiory.com",   "http://localhost*",
+                             "http://localhost*",
                             "http://localhost",  "/auth/forgot-password", "/auth/reset-password"
                     ));
                     corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT","PATCH", "DELETE", "OPTIONS"));
