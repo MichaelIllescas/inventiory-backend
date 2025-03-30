@@ -226,25 +226,23 @@ public class SaleService {
 
         return costoTotal.divide(cantidadVendida, 2, BigDecimal.ROUND_HALF_UP);
     }
+
     @Transactional
     public boolean deleteSale(Long id) {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
 
-        // Restaurar el stock de los productos antes de eliminar la venta
-        restoreStockFromSale(sale);
-
-        // Si la venta está en estado CANCELED, lanzar excepción
         if (sale.getStatus().equals(SaleStatus.CANCELED)) {
             throw new RuntimeException("No se puede eliminar una venta que ya ha sido anulada.");
         }
-        // Eliminar la venta
 
-            saleRepository.delete(sale);
+        restoreStockFromSale(sale);         // Restaurar stock del producto
+        restorePurchasesFromSale(sale);     // Restaurar compras usadas en esta venta
 
-
+        saleRepository.delete(sale);
         return true;
     }
+
 
     @Transactional
     public SaleResponseDTO changeState(Long id) {
@@ -284,4 +282,40 @@ public class SaleService {
     public List<SaleResponseDTO> getSalesToClient(Long id) {
          return  saleRepository.findAllByCustomerId (id).stream().map(this::convertToDTO).collect(Collectors.toList());
     }
+
+    private void restorePurchasesFromSale(Sale sale) {
+        for (SaleDetail detail : sale.getSaleDetails()) {
+            BigDecimal cantidadRestante = detail.getQuantity();
+            BigDecimal costoUnitario = detail.getCostPrice();
+
+            // Buscar compras que coincidan con el precio de costo y el producto
+            List<Purchase> compras = purchaseRepository
+                    .findByProductIdOrderByPurchaseDateAsc(detail.getProduct().getId());
+
+            for (Purchase compra : compras) {
+                if (compra.getPurchasePrice().compareTo(costoUnitario) == 0) {
+                    // Revertir la cantidad usada
+                    BigDecimal cantidadARestaurar = cantidadRestante.min(compra.getQuantity().subtract(compra.getRemainingStock()));
+                    compra.setRemainingStock(compra.getRemainingStock().add(cantidadARestaurar));
+
+                    // Restaurar el estado si es necesario
+                    if (compra.getRemainingStock().compareTo(BigDecimal.ZERO) > 0) {
+                        compra.setState(true);
+                    }
+
+                    purchaseRepository.save(compra);
+                    cantidadRestante = cantidadRestante.subtract(cantidadARestaurar);
+
+                    if (cantidadRestante.compareTo(BigDecimal.ZERO) == 0) {
+                        break;
+                    }
+                }
+            }
+
+            if (cantidadRestante.compareTo(BigDecimal.ZERO) > 0) {
+                throw new RuntimeException("No se pudo restaurar completamente el stock de compras para el producto " + detail.getProduct().getName());
+            }
+        }
+    }
+
 }
