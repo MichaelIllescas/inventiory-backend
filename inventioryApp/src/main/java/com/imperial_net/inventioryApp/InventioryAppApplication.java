@@ -1,6 +1,6 @@
 package com.imperial_net.inventioryApp;
 
-import com.imperial_net.inventioryApp.services.UserService;
+import com.imperial_net.inventioryApp.users.service.UserService;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
