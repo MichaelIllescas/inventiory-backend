@@ -4,19 +4,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 
-import com.imperial_net.inventioryApp.dto.AuthenticationRequest;
-import com.imperial_net.inventioryApp.dto.AuthenticationResponse;
+import com.imperial_net.inventioryApp.auth.dto.AuthenticationRequest;
+import com.imperial_net.inventioryApp.auth.dto.AuthenticationResponse;
+import com.imperial_net.inventioryApp.auth.service.AuthenticationService;
 import com.imperial_net.inventioryApp.exceptions.DisabledUserException;
 import com.imperial_net.inventioryApp.exceptions.InvalidCredentialsException;
-import com.imperial_net.inventioryApp.models.User;
-import com.imperial_net.inventioryApp.repositories.UserRepository;
+import com.imperial_net.inventioryApp.users.model.User;
+import com.imperial_net.inventioryApp.users.repository.UserRepository;
 import com.imperial_net.inventioryApp.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,7 +26,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.HashMap;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) //Le dice a JUnit 5 que use Mockito para ejecutar la prueba.

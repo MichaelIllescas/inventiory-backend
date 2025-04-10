@@ -1,11 +1,12 @@
 package com.imperial_net.inventioryApp.services;
 
-import com.imperial_net.inventioryApp.dto.UserDTO;
-import com.imperial_net.inventioryApp.dto.UserRequestDTO;
+import com.imperial_net.inventioryApp.users.dto.UserDTO;
+import com.imperial_net.inventioryApp.users.dto.UserRequestDTO;
 import com.imperial_net.inventioryApp.exceptions.UserRegisterException;
-import com.imperial_net.inventioryApp.models.Role;
-import com.imperial_net.inventioryApp.models.User;
-import com.imperial_net.inventioryApp.repositories.UserRepository;
+import com.imperial_net.inventioryApp.users.model.Role;
+import com.imperial_net.inventioryApp.users.model.User;
+import com.imperial_net.inventioryApp.users.repository.UserRepository;
+import com.imperial_net.inventioryApp.users.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
